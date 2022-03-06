@@ -32,11 +32,11 @@ class ViewController: UIViewController {
   }
 }
 
-// Implement a proper item ID
+// Implement a proper item ID (Hashable)
 
 typealias ItemID = UUID
 
-struct ItemsState {
+struct ItemsState: Equatable {
   var itemIDs: [ItemID]
   private var idItemMap: [ItemID: Int]
 
@@ -67,7 +67,7 @@ struct ItemsState {
   }
   .sink { print($0) }
 
-// User scan() to produce previous state
+// Use scan() to produce previous state
 [0, 1, 2, 3, 4, 5, 6, 7, 8].publisher
   .scan((nil, nil)) { partialResult, current in
     (partialResult.1, current)
