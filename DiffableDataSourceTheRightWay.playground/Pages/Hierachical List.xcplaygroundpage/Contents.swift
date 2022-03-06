@@ -63,17 +63,16 @@ public class HierachicalVC: UIViewController {
 
       cell.contentConfiguration = content
 
-      let stepper = UIStepper(frame: .zero, primaryAction: UIAction { [weak self] action in
+      var buttonConfiguration: UIButton.Configuration = .plain()
+      buttonConfiguration.image = UIImage(systemName: "plus")
+      let button = UIButton(configuration: buttonConfiguration, primaryAction: UIAction { [weak self] action in
         guard let self = self else { return }
-        let stepper = action.sender as! UIStepper
-        self.itemsState[item.id] = Int(stepper.value)
+        guard self.itemsState[item.id] <= 50 else { return }
+        self.itemsState[item.id] += 1
       })
-      stepper.value = Double(item.number)
-      stepper.minimumValue = 0
-      stepper.maximumValue = 50
 
-      let stepperConfiguration = UICellAccessory.CustomViewConfiguration(customView: stepper, placement: .trailing())
-      cell.accessories = [.customView(configuration: stepperConfiguration)]
+      let accessoryConfiguration = UICellAccessory.CustomViewConfiguration(customView: button, placement: .trailing())
+      cell.accessories = [.customView(configuration: accessoryConfiguration)]
     }
 
     return UICollectionViewDiffableDataSource(collectionView: collectionView) { [weak self] collectionView, indexPath, itemID in
