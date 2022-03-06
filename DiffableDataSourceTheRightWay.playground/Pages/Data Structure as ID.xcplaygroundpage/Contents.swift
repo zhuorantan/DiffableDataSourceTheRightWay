@@ -1,4 +1,5 @@
 import Combine
+import PlaygroundSupport
 import UIKit
 
 public class DataStructureAsIDVC: UIViewController {
@@ -48,7 +49,7 @@ public class DataStructureAsIDVC: UIViewController {
     }
   }()
 
-  @Published private var items = (0...50).map { Item(number: $0) }
+  @Published private var items = (0...10).map { Item(number: $0) }
 
   private var disposables: Set<AnyCancellable> = []
 
@@ -71,3 +72,5 @@ public class DataStructureAsIDVC: UIViewController {
       .store(in: &disposables)
   }
 }
+
+PlaygroundPage.current.liveView = DataStructureAsIDVC()

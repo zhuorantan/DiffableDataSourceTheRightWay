@@ -1,4 +1,5 @@
 import Combine
+import PlaygroundSupport
 import UIKit
 
 public class UUIDAsIDVC: UIViewController {
@@ -64,7 +65,7 @@ public class UUIDAsIDVC: UIViewController {
     }
   }()
 
-  @Published private var itemsState = ItemsState(items: (0...50).map { Item(number: $0) })
+  @Published private var itemsState = ItemsState(items: (0...10).map { Item(number: $0) })
 
   private var disposables: Set<AnyCancellable> = []
 
@@ -100,3 +101,5 @@ public class UUIDAsIDVC: UIViewController {
       .store(in: &disposables)
   }
 }
+
+PlaygroundPage.current.liveView = UUIDAsIDVC()
