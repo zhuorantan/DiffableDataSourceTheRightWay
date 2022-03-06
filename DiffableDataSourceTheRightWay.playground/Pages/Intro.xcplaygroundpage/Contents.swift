@@ -2,18 +2,21 @@ import Combine
 import UIKit
 
 // Use an entire data structure as diffable data source item ID
+// Diffable data source can detect insert, delete, move & update (delete + insert)
 
 struct Item: Hashable {
   let id: UUID
   var number: Int
 }
 
+
+
 // Observe a combine data store
 
 class ViewController: UIViewController {
   @Published var items = (0...8).map { Item(id: UUID(), number: $0) }
 
-  var dataSource: UICollectionViewDiffableDataSource<Int, Item>!
+  var dataSource: UICollectionViewDiffableDataSource<Section, Item>!
   var disposables: Set<AnyCancellable> = []
 
   override func viewDidLoad() {
@@ -22,9 +25,9 @@ class ViewController: UIViewController {
     $items
       .sink { [weak self] items in
         guard let self = self else { return }
-        var snapshot = NSDiffableDataSourceSnapshot<Int, Item>()
-        snapshot.appendSections([0])
-        snapshot.appendItems(items, toSection: 0)
+        var snapshot = NSDiffableDataSourceSnapshot<Section, Item>()
+        snapshot.appendSections([.default])
+        snapshot.appendItems(items, toSection: .default)
 
         self.dataSource.apply(snapshot)
       }
@@ -32,7 +35,10 @@ class ViewController: UIViewController {
   }
 }
 
+
+
 // Implement a proper item ID (Hashable)
+// Diffable data source can still detect insert, delete & move, but not update
 
 typealias ItemID = UUID
 
@@ -52,6 +58,8 @@ struct ItemsState: Equatable {
   }
 }
 
+
+
 // Get previous state in the data flow
 
 // Collection reduce()
@@ -60,12 +68,16 @@ struct ItemsState: Equatable {
   partialResult + current
 }
 
+
+
 // Combine version of reduce(): scan()
 [0, 1, 2, 3, 4, 5, 6, 7, 8].publisher
   .scan(0) { partialResult, current in
     partialResult + current
   }
   .sink { print($0) }
+
+
 
 // Use scan() to produce previous state
 [0, 1, 2, 3, 4, 5, 6, 7, 8].publisher
@@ -75,12 +87,16 @@ struct ItemsState: Equatable {
   .map { ($0, $1!) }
   .sink { print($0) }
 
+
+
 // Tell the diffable data source what changed
+
+
 
 class ViewController2: UIViewController {
   @Published var itemState = ItemsState(numbers: Array(0...8))
 
-  var dataSource: UICollectionViewDiffableDataSource<Int, ItemID>!
+  var dataSource: UICollectionViewDiffableDataSource<Section, ItemID>!
   var disposables: Set<AnyCancellable> = []
 
   override func viewDidLoad() {
@@ -93,9 +109,9 @@ class ViewController2: UIViewController {
       .map { ($0, $1!) }
       .sink { [weak self] previousState, currentState in
         guard let self = self else { return }
-        var snapshot = NSDiffableDataSourceSnapshot<Int, ItemID>()
-        snapshot.appendSections([0])
-        snapshot.appendItems(currentState.itemIDs, toSection: 0)
+        var snapshot = NSDiffableDataSourceSnapshot<Section, ItemID>()
+        snapshot.appendSections([.default])
+        snapshot.appendItems(currentState.itemIDs, toSection: .default)
 
         // previousState would be nil only for the first emit
         if let previousState = previousState {
@@ -109,4 +125,15 @@ class ViewController2: UIViewController {
       }
       .store(in: &disposables)
   }
+}
+
+
+
+
+
+
+
+
+enum Section {
+  case `default`
 }
