@@ -4,5 +4,6 @@
         <page name='Data Structure as ID'/>
         <page name='UUID as ID'/>
         <page name='Hierachical List'/>
+        <page name='Hierachical List with Diff'/>
     </pages>
 </playground>

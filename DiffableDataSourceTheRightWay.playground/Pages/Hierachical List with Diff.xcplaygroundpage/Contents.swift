@@ -117,9 +117,20 @@ public class HierachicalVC: UIViewController {
         }
 
         for section in Section.allCases {
-          var sectionSnapshot = NSDiffableDataSourceSectionSnapshot<Item>()
-          sectionSnapshot.append([.header(section)])
-          sectionSnapshot.append(currentState.itemIDs.map { .row(id: $0, section: section) }, to: .header(section))
+          let items: [Item] = currentState.itemIDs.map { .row(id: $0, section: section) }
+
+          var sectionSnapshot = self.dataSource.snapshot(for: section)
+          if sectionSnapshot.contains(.header(section)) {
+            var childSectionSnapshot = sectionSnapshot.snapshot(of: .header(section))
+            childSectionSnapshot.applyRootItemsDiff(to: items)
+
+            sectionSnapshot.replace(childrenOf: .header(section), using: childSectionSnapshot)
+          } else {
+            sectionSnapshot.append([.header(section)])
+            sectionSnapshot.append(items, to: .header(section))
+            sectionSnapshot.expand([.header(section)])
+          }
+
           self.dataSource.apply(sectionSnapshot, to: section)
         }
 
@@ -145,6 +156,35 @@ public class HierachicalVC: UIViewController {
         }
       }
       .store(in: &disposables)
+  }
+}
+
+extension NSDiffableDataSourceSectionSnapshot {
+  mutating func applyRootItemsDiff(to itemIdentifiers: [ItemIdentifierType]) {
+    let difference = itemIdentifiers.difference(from: rootItems)
+
+    let removedItems: [ItemIdentifierType] = difference.removals.compactMap {
+      guard case .remove(_, let item, _) = $0 else {
+        return nil
+      }
+      return item
+    }
+    delete(removedItems)
+
+    for change in difference.insertions {
+      guard case .insert(let offset, let item, _) = change else { continue }
+
+      guard !rootItems.isEmpty else {
+        append([item])
+        continue
+      }
+      guard offset > 0 else {
+        insert([item], before: rootItems[0])
+        continue
+      }
+
+      insert([item], after: rootItems[offset - 1])
+    }
   }
 }
 
