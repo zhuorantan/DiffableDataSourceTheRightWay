@@ -75,7 +75,7 @@ struct ItemsState: Equatable {
   .scan(0) { partialResult, current in
     partialResult + current
   }
-  .sink { print($0) }
+  .sink { print($0) } // 0 1 3 6 10 15 21 28 36
 
 
 
@@ -85,7 +85,7 @@ struct ItemsState: Equatable {
     (partialResult.1, current)
   }
   .map { ($0, $1!) }
-  .sink { print($0) }
+  .sink { print($0) } // (nil, 0), (0, 1), (1, 2), (2, 3), (3, 4), (4, 5), (5, 6), (6, 7), (7, 8)
 
 
 
