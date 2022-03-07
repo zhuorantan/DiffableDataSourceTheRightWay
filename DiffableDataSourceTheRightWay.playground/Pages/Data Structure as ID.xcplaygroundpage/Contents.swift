@@ -31,17 +31,16 @@ public class DataStructureAsIDVC: UIViewController {
 
       cell.contentConfiguration = content
 
-      let stepper = UIStepper(frame: .zero, primaryAction: UIAction { [weak self] action in
+      var buttonConfiguration: UIButton.Configuration = .plain()
+      buttonConfiguration.image = UIImage(systemName: "plus")
+      let button = UIButton(configuration: buttonConfiguration, primaryAction: UIAction { [weak self] action in
         guard let self = self else { return }
-        let stepper = action.sender as! UIStepper
-        self.items[indexPath.item].number = Int(stepper.value)
+        guard self.items[indexPath.item].number < 50 else { return }
+        self.items[indexPath.item].number += 1
       })
-      stepper.value = Double(item.number)
-      stepper.minimumValue = 0
-      stepper.maximumValue = 50
 
-      let stepperConfiguration = UICellAccessory.CustomViewConfiguration(customView: stepper, placement: .trailing())
-      cell.accessories = [.customView(configuration: stepperConfiguration)]
+      let accessoryConfiguration = UICellAccessory.CustomViewConfiguration(customView: button, placement: .trailing())
+      cell.accessories = [.customView(configuration: accessoryConfiguration)]
     }
 
     return UICollectionViewDiffableDataSource(collectionView: collectionView) { collectionView, indexPath, item in
@@ -49,7 +48,7 @@ public class DataStructureAsIDVC: UIViewController {
     }
   }()
 
-  @Published private var items = (0...10).map { Item(number: $0) }
+  @Published private var items = (0...7).map { Item(number: $0) }
 
   private var disposables: Set<AnyCancellable> = []
 

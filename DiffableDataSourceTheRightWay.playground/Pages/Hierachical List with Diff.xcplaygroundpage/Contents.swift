@@ -67,7 +67,7 @@ public class HierachicalVC: UIViewController {
       buttonConfiguration.image = UIImage(systemName: "plus")
       let button = UIButton(configuration: buttonConfiguration, primaryAction: UIAction { [weak self] action in
         guard let self = self else { return }
-        guard self.itemsState[item.id] <= 50 else { return }
+        guard self.itemsState[item.id] < 50 else { return }
         self.itemsState[item.id] += 1
       })
 
@@ -88,7 +88,7 @@ public class HierachicalVC: UIViewController {
     }
   }()
 
-  @Published private var itemsState = ItemsState(max: 10)
+  @Published private var itemsState = ItemsState(max: 7)
 
   private var disposables: Set<AnyCancellable> = []
 

@@ -14,7 +14,7 @@ struct Item: Hashable {
 // Observe a combine data store
 
 class ViewController: UIViewController {
-  @Published var items = (0...8).map { Item(id: UUID(), number: $0) }
+  @Published var items = (0...7).map { Item(id: UUID(), number: $0) }
 
   var dataSource: UICollectionViewDiffableDataSource<Section, Item>!
   var disposables: Set<AnyCancellable> = []
@@ -63,29 +63,30 @@ struct ItemsState: Equatable {
 // Get previous state in the data flow
 
 // Collection reduce()
-[0, 1, 2, 3, 4, 5, 6, 7, 8].reduce(0, +)
-[0, 1, 2, 3, 4, 5, 6, 7, 8].reduce(0) { partialResult, current in
+[0, 1, 2, 3, 4, 5, 6, 7].reduce(0, +)
+[0, 1, 2, 3, 4, 5, 6, 7].reduce(0) { partialResult, current in
   partialResult + current
 }
+// 28
 
 
 
 // Combine version of reduce(): scan()
-[0, 1, 2, 3, 4, 5, 6, 7, 8].publisher
+[0, 1, 2, 3, 4, 5, 6, 7].publisher
   .scan(0) { partialResult, current in
     partialResult + current
   }
-  .sink { print($0) } // 0 1 3 6 10 15 21 28 36
+  .sink { print($0) } // 0 1 3 6 10 15 21 28
 
 
 
 // Use scan() to produce previous state
-[0, 1, 2, 3, 4, 5, 6, 7, 8].publisher
+[0, 1, 2, 3, 4, 5, 6, 7].publisher
   .scan((nil, nil)) { partialResult, current in
     (partialResult.1, current)
   }
   .map { ($0, $1!) }
-  .sink { print($0) } // (nil, 0), (0, 1), (1, 2), (2, 3), (3, 4), (4, 5), (5, 6), (6, 7), (7, 8)
+  .sink { print($0) } // (nil, 0), (0, 1), (1, 2), (2, 3), (3, 4), (4, 5), (5, 6), (6, 7)
 
 
 

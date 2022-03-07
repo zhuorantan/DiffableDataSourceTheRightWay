@@ -7,25 +7,20 @@ public class UUIDAsIDVC: UIViewController {
     case `default`
   }
 
-  private struct Item: Equatable, Identifiable {
-    let id = UUID()
-    var number: Int
-
-    var image: UIImage? {
-      UIImage(systemName: "\(number).circle.fill")
-    }
-  }
+  private typealias Item = UUID
 
   private struct ItemsState {
-    private(set) var itemIDs: [Item.ID]
-    private var idItemMap: [Item.ID: Item]
+    private(set) var itemIDs: [UUID]
+    private var idItemMap: [UUID: Int]
 
-    init(items: [Item]) {
+    init(max: Int) {
+      let items = (0...max).map { (id: UUID(), number: $0) }
+
       self.itemIDs = items.map(\.id)
-      self.idItemMap = Dictionary(uniqueKeysWithValues: items.map { ($0.id, $0) })
+      self.idItemMap = Dictionary(uniqueKeysWithValues: items)
     }
 
-    subscript(id: Item.ID) -> Item {
+    subscript(id: UUID) -> Int {
       get { idItemMap[id]! }
       set { idItemMap[id] = newValue }
     }
@@ -39,10 +34,10 @@ public class UUIDAsIDVC: UIViewController {
     return collectionView
   }()
 
-  private lazy var dataSource: UICollectionViewDiffableDataSource<Section, Item.ID> = {
-    let cellRegistration = UICollectionView.CellRegistration<UICollectionViewListCell, Item> { cell, _, item in
+  private lazy var dataSource: UICollectionViewDiffableDataSource<Section, Item> = {
+    let cellRegistration = UICollectionView.CellRegistration<UICollectionViewListCell, (id: Item, number: Int)> { cell, _, item in
       var content = cell.defaultContentConfiguration()
-      content.image = item.image
+      content.image = UIImage(systemName: "\(item.number).circle.fill")
 
       cell.contentConfiguration = content
 
@@ -50,8 +45,8 @@ public class UUIDAsIDVC: UIViewController {
       buttonConfiguration.image = UIImage(systemName: "plus")
       let button = UIButton(configuration: buttonConfiguration, primaryAction: UIAction { [weak self] action in
         guard let self = self else { return }
-        guard self.itemsState[item.id].number <= 50 else { return }
-        self.itemsState[item.id].number += 1
+        guard self.itemsState[item.id] < 50 else { return }
+        self.itemsState[item.id] += 1
       })
 
       let accessoryConfiguration = UICellAccessory.CustomViewConfiguration(customView: button, placement: .trailing())
@@ -60,11 +55,11 @@ public class UUIDAsIDVC: UIViewController {
 
     return UICollectionViewDiffableDataSource(collectionView: collectionView) { [weak self] collectionView, indexPath, itemID in
       guard let self = self else { return nil }
-      return collectionView.dequeueConfiguredReusableCell(using: cellRegistration, for: indexPath, item: self.itemsState[itemID])
+      return collectionView.dequeueConfiguredReusableCell(using: cellRegistration, for: indexPath, item: (itemID, self.itemsState[itemID]))
     }
   }()
 
-  @Published private var itemsState = ItemsState(items: (0...10).map { Item(number: $0) })
+  @Published private var itemsState = ItemsState(max: 7)
 
   private var disposables: Set<AnyCancellable> = []
 
@@ -84,7 +79,7 @@ public class UUIDAsIDVC: UIViewController {
       .receive(on: DispatchQueue.main)
       .sink { [weak self] previousState, currentState in
         guard let self = self else { return }
-        var snapshot = NSDiffableDataSourceSnapshot<Section, Item.ID>()
+        var snapshot = NSDiffableDataSourceSnapshot<Section, Item>()
         snapshot.appendSections([.default])
         snapshot.appendItems(currentState.itemIDs, toSection: .default)
 
